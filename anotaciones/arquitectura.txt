@@ -1,0 +1,107 @@
+ARQUITECTURA DEL PROYECTO: recentando
+=====================================
+
+Ruta raíz:
+C:\Users\paiva\Documents\Cursada2026\Apps\recentando
+
+ÁRBOL DE CARPETAS Y ARCHIVOS
+----------------------------
+
+recentando/
+├── anotaciones/
+│   ├── notaciones.md
+│   └── arquitectura.txt                  <- Este archivo
+│
+└── app/                                  <- Aplicación Expo / React Native
+    ├── .claude/
+    │   └── settings.json                 <- Configuración del plugin de Expo para Claude
+    │
+    ├── .expo/                            <- Archivos generados por Expo en el entorno local
+    │   ├── dev/
+    │   │   └── logs/
+    │   │       └── start.log             <- Registro local de ejecución de Expo
+    │   ├── devices.json                   <- Dispositivos usados recientemente
+    │   └── README.md                      <- Explicación de la carpeta .expo
+    │
+    ├── assets/                            <- Recursos gráficos de la aplicación
+    │   ├── android-icon-background.png
+    │   ├── android-icon-foreground.png
+    │   ├── android-icon-monochrome.png
+    │   ├── favicon.png                    <- Ícono para la versión web
+    │   ├── icon.png                       <- Ícono principal de la aplicación
+    │   └── splash-icon.png                <- Ícono de pantalla de inicio
+    │
+    ├── node_modules/                      <- Dependencias instaladas con npm
+    │   └── (contenido interno no expandido)
+    │
+    ├── .gitignore                         <- Exclusiones para Git
+    ├── AGENTS.md                          <- Instrucciones de desarrollo para agentes
+    ├── App.js                             <- Componente principal de la aplicación
+    ├── app.json                            <- Configuración de Expo, Android, iOS y web
+    ├── CLAUDE.md                          <- Referencia a las instrucciones de AGENTS.md
+    ├── index.js                            <- Punto de entrada; registra el componente raíz
+    ├── LICENSE                             <- Licencia MIT heredada de Expo
+    ├── package.json                        <- Dependencias y scripts del proyecto
+    └── package-lock.json                   <- Versiones exactas de dependencias instaladas
+
+DESCRIPCIÓN DE LA ARQUITECTURA
+------------------------------
+
+1. recentando/
+   Es la carpeta raíz del workspace. Contiene la aplicación y la documentación
+   personal del proyecto.
+
+2. anotaciones/
+   Contiene notas y documentación relacionada con el desarrollo.
+
+3. app/
+   Es el proyecto ejecutable de Expo y React Native.
+
+4. App.js
+   Define la interfaz principal actual. Renderiza un View, un Text y el StatusBar.
+
+5. index.js
+   Importa App y lo registra mediante registerRootComponent de Expo.
+
+6. app.json
+   Configura el nombre, slug, versión, orientación, íconos, estilos y plataformas.
+
+7. assets/
+   Contiene los recursos visuales referenciados desde app.json.
+
+8. package.json y package-lock.json
+   Definen las dependencias principales:
+   - expo
+   - expo-status-bar
+   - react
+   - react-native
+
+9. .expo/
+   Contiene información generada localmente por Expo. No debería compartirse ni
+   versionarse; está contemplada en .gitignore.
+
+10. node_modules/
+    Contiene las dependencias descargadas por npm. Es una carpeta generada y su
+    contenido no se detalla individualmente en este documento.
+
+11. .claude/
+    Contiene configuración local relacionada con herramientas de Claude.
+
+ARCHIVOS DE CONFIGURACIÓN Y DOCUMENTACIÓN
+-----------------------------------------
+
+- .gitignore: indica archivos y carpetas que Git debe ignorar.
+- AGENTS.md: solicita consultar la documentación versionada de Expo SDK 57 antes
+  de modificar código.
+- CLAUDE.md: referencia el archivo AGENTS.md.
+- LICENSE: licencia MIT del proyecto base.
+- notaciones.md: instrucciones anotadas para crear y ejecutar la aplicación con Expo Go.
+
+NOTA SOBRE CARPETAS GENERADAS
+-----------------------------
+
+El árbol incluye las carpetas ocultas relevantes (.claude y .expo). La carpeta
+node_modules existe localmente, pero no se expande porque contiene una gran cantidad
+de archivos de dependencias generados automáticamente. También puede existir la
+carpeta .git como metadatos del repositorio; su contenido interno no forma parte
+de la arquitectura funcional de la aplicación y por eso no se detalla aquí.
