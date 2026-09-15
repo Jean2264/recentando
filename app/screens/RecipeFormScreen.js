@@ -11,12 +11,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fonts } from "../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 
 export default function RecipeFormScreen({ navigation, route }) {
   const mode = route.params?.mode ?? "create";
   const isEditMode = mode === "edit";
+  const recipe = route.params?.recipe;
 
   const [nombre, setNombre] = useState("");
   const [imagen, setImagen] = useState(null);
@@ -69,6 +70,13 @@ export default function RecipeFormScreen({ navigation, route }) {
   function eliminarReceta() {
     console.log("Eliminar receta");
   }
+
+  useEffect(() => {
+    setNombre(recipe.nombre ?? "");
+    setImagen(recipe.imagen ?? null);
+    setIngredientes(recipe.ingredientes ?? []);
+    setPreparacion(recipe.preparacion ?? []);
+  }, [isEditMode, recipe]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -179,18 +187,13 @@ export default function RecipeFormScreen({ navigation, route }) {
         </View>
 
         {/* GUARDAR */}
-        {!isEditMode ? (
-          <Pressable style={styles.saveButton} onPress={guardarReceta}>
-            <Text style={styles.saveButtonText}>Crear receta</Text>
-          </Pressable>
-        ) : (
-          <View style={styles.editButtons}>
-            <Pressable style={deleteButton} onPress={eliminarReceta}>
-              <Ionicons name="trash-outline" size={20} color="#fff" />
-              <Text style={styles.buttonText}>Eliminar receta</Text>
-            </Pressable>
-          </View>
-        )}
+        <Pressable style={styles.saveButton} onPress={guardarReceta}>
+          <Ionicons name="save-outline" size={22} color="#fff" />
+
+          <Text style={styles.saveButtonText}>
+            {isEditMode ? "Guardar cambios" : "Crear receta"}
+          </Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -217,6 +220,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 4,
+  },
+
+  saveButton: {
+    minHeight: 52,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: "#3b82f6",
   },
 
   btnBack: {
