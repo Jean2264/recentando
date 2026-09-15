@@ -3,8 +3,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import HomeScreen from "./screens/HomeScreen";
 import { useFonts } from "expo-font";
+import { initializeDatabase } from "./database/database";
 import RecipeScreen from "./screens/RecipeScreen";
 import RecipeFormScreen from "./screens/RecipeFormScreen";
+import { useEffect } from "react";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -15,9 +17,20 @@ export default function App() {
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
   });
 
+  useEffect(() => {
+    async function prepararBaseDeDatos() {
+      try {
+        await initializeDatabase();
+      } catch (error) {
+        console.error("Error al inicializar ela base de datos: ", error);
+      }
+    }
+    prepararBaseDeDatos();
+  }, []);
   if (!fontsLoaded) {
     return null;
   }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>

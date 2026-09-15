@@ -11,27 +11,60 @@ import { fonts } from "../styles/fonts";
 const recetas = [
   {
     id: "1",
-    title: "Bizcochuelo de chocolate",
+    nombre: "Bizcochuelo de chocolate",
     tiempo: "45 minutos",
-    image: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
+    imagen: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
+    ingredientes: [
+      "300 gramos de harina 0000",
+      "3 huevos",
+      "200 gramos de azúcar",
+      "100 gramos de chocolate",
+    ],
+    preparacion: [
+      "Mezclar los ingredientes secos.",
+      "Agregar los huevos y mezclar.",
+      "Incorporar el chocolate.",
+      "Hornear durante 45 minutos.",
+    ],
   },
   {
     id: "2",
-    title: "Bizcochuelo de vainilla",
+    nombre: "Bizcochuelo de vainilla",
     tiempo: "1 hora",
-    image: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
+    imagen: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
+    ingredientes: [
+      "300 gramos de harina",
+      "3 huevos",
+      "200 gramos de azúcar",
+      "Esencia de vainilla",
+    ],
+    preparacion: [
+      "Batir los huevos con el azúcar.",
+      "Agregar la harina.",
+      "Incorporar la esencia de vainilla.",
+      "Hornear durante 1 hora.",
+    ],
   },
 ];
 
 export default function HomeScreen({ navigation }) {
+  function abrirCrearReceta() {
+    navigation.navigate("RecipeForm", {
+      mode: "create",
+    });
+  }
+
+  function abrirDetalleReceta(receta) {
+    navigation.navigate("Recipe", {
+      recipe: receta,
+    });
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <Header />
 
-      <Pressable
-        style={styles.addButton}
-        onPress={() => navigation.navigate("RecipeForm")}
-      >
+      <Pressable style={styles.addButton} onPress={abrirCrearReceta}>
         <Ionicons name="add" size={28} color="#fff" />
       </Pressable>
 
@@ -46,10 +79,10 @@ export default function HomeScreen({ navigation }) {
           style={styles.recipes}
           renderItem={({ item }) => (
             <RecipeCard
-              title={item.title}
-              image={item.image}
+              title={item.nombre}
+              image={item.imagen}
               tiempo={item.tiempo}
-              onPress={() => navigation.navigate("Recipe")}
+              onPress={() => abrirDetalleReceta(item)}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -93,6 +126,7 @@ const styles = StyleSheet.create({
   section: {
     width: "90%",
     marginTop: 20,
+    flex: 1,
   },
 
   title: {
@@ -103,6 +137,6 @@ const styles = StyleSheet.create({
   },
 
   recipes: {
-    marginBottom: 30,
+    paddingBottom: 30,
   },
 });

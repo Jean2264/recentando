@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 export default function RecipeFormScreen({ navigation, route }) {
   const mode = route.params?.mode ?? "create";
   const isEditMode = mode === "edit";
+
   const recipe = route.params?.recipe;
 
   const [nombre, setNombre] = useState("");
@@ -27,6 +28,15 @@ export default function RecipeFormScreen({ navigation, route }) {
 
   const [pasoInput, setPasoInput] = useState("");
   const [preparacion, setPreparacion] = useState([]);
+
+  useEffect(() => {
+    if (isEditMode && recipe) {
+      setNombre(recipe.nombre ?? "");
+      setImagen(recipe.imagen ?? null);
+      setIngredientes(recipe.ingredientes ?? []);
+      setPreparacion(recipe.preparacion ?? []);
+    }
+  }, [isEditMode, recipe]);
 
   function agregarIngrediente() {
     if (!ingredienteInput.trim()) return;
@@ -59,6 +69,7 @@ export default function RecipeFormScreen({ navigation, route }) {
 
   function guardarReceta() {
     console.log({
+      modo: isEditMode ? "editar" : "crear",
       nombre,
       imagen,
       ingredientes,
@@ -66,27 +77,16 @@ export default function RecipeFormScreen({ navigation, route }) {
     });
   }
 
-  //Eliminar receta
-  function eliminarReceta() {
-    console.log("Eliminar receta");
-  }
-
-  useEffect(() => {
-    setNombre(recipe.nombre ?? "");
-    setImagen(recipe.imagen ?? null);
-    setIngredientes(recipe.ingredientes ?? []);
-    setPreparacion(recipe.preparacion ?? []);
-  }, [isEditMode, recipe]);
-
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      {/* HEADER */}
       <View style={styles.header}>
         <Pressable style={styles.btnBack} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#222" />
         </Pressable>
 
         <Text style={styles.headerTitle}>
-          {mode === "edit" ? "Editar receta" : "Crear receta"}
+          {isEditMode ? "Editar receta" : "Crear receta"}
         </Text>
       </View>
 
@@ -222,16 +222,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  saveButton: {
-    minHeight: 52,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
-    backgroundColor: "#3b82f6",
-  },
-
   btnBack: {
     width: 50,
     height: 50,
@@ -289,6 +279,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.regular,
     color: "#1F2937",
+  },
+
+  inputDisabled: {
+    backgroundColor: "#f3f4f6",
+    color: "#6b7280",
   },
 
   addRow: {
@@ -376,6 +371,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
     backgroundColor: "#3b82f6",
   },
 
