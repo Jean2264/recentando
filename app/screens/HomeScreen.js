@@ -1,53 +1,30 @@
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, Pressable, View, FlatList, Text } from "react-native";
+import {
+  StyleSheet,
+  Pressable,
+  View,
+  FlatList,
+  Text,
+  ActivityIndicator,
+} from "react-native";
+import { useCallback, useEffect, useState } from "react";
 
+import { obtenerRecetasPaginadas } from "../database/recetaRepository";
 import Header from "../components/Header";
 import Searchbar from "../components/Searchbar";
 import RecipeCard from "../components/RecipeCard";
 import { fonts } from "../styles/fonts";
 
-const recetas = [
-  {
-    id: "1",
-    nombre: "Bizcochuelo de chocolate",
-    tiempo: "45 minutos",
-    imagen: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
-    ingredientes: [
-      "300 gramos de harina 0000",
-      "3 huevos",
-      "200 gramos de azúcar",
-      "100 gramos de chocolate",
-    ],
-    preparacion: [
-      "Mezclar los ingredientes secos.",
-      "Agregar los huevos y mezclar.",
-      "Incorporar el chocolate.",
-      "Hornear durante 45 minutos.",
-    ],
-  },
-  {
-    id: "2",
-    nombre: "Bizcochuelo de vainilla",
-    tiempo: "1 hora",
-    imagen: require("../assets/recipes/zapallitos-rellenos-deliciosos-foto-principal.webp"),
-    ingredientes: [
-      "300 gramos de harina",
-      "3 huevos",
-      "200 gramos de azúcar",
-      "Esencia de vainilla",
-    ],
-    preparacion: [
-      "Batir los huevos con el azúcar.",
-      "Agregar la harina.",
-      "Incorporar la esencia de vainilla.",
-      "Hornear durante 1 hora.",
-    ],
-  },
-];
+const LIMITE_RECETAS = 20;
 
 export default function HomeScreen({ navigation }) {
+  const [recetas, setRecetas] = useState([]);
+  const [pagina, setPagina] = useState(0);
+  const [cargando, setCargando] = useState(false);
+  const [hayMasRecetas, setHayMasRecetas] = useState(true);
+
   function abrirCrearReceta() {
     navigation.navigate("RecipeForm", {
       mode: "create",
@@ -59,6 +36,49 @@ export default function HomeScreen({ navigation }) {
       recipe: receta,
     });
   }
+
+  const cargarRecetas = useCallback(async () => {
+    if (cargando || !hayMasRecetas) {
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      const nuevasRecetas = await obtenerRecetasPaginadas(
+        LIMITE_RECETAS,
+        pagina,
+      );
+
+      setRecetas((recetasAnteriores) => {
+        const recetasCombinadas = [...recetasAnteriores, ...nuevasRecetas];
+
+        const recetasSinDuplicados = recetasCombinadas.filter(
+          (receta, indice, array) =>
+            indice ===
+            array.findIndex(
+              (recetaAnterior) => recetaAnterior.id === receta.id,
+            ),
+        );
+
+        return recetasSinDuplicados;
+      });
+
+      setPagina((paginaAnterior) => paginaAnterior + LIMITE_RECETAS);
+
+      if (nuevasRecetas.length < LIMITE_RECETAS) {
+        setHayMasRecetas(false);
+      }
+    } catch (error) {
+      console.error("Error al cargar recetas:", error);
+    } finally {
+      setCargando(false);
+    }
+  }, [cargando, hayMasRecetas, pagina]);
+
+  useEffect(() => {
+    cargarRecetas();
+  }, [cargarRecetas]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -77,16 +97,42 @@ export default function HomeScreen({ navigation }) {
           data={recetas}
           keyExtractor={(item) => item.id}
           style={styles.recipes}
-          renderItem={({ item }) => (
-            <RecipeCard
-              title={item.nombre}
-              image={item.imagen}
-              tiempo={item.tiempo}
-              onPress={() => abrirDetalleReceta(item)}
-            />
-          )}
+          renderItem={({ item }) => {
+            console.log("Imagen de la receta:", item.imagen);
+
+            return (
+              <RecipeCard
+                title={item.nombre}
+                image={item.imagen}
+                tiempo={item.tiempo}
+                onPress={() => abrirDetalleReceta(item)}
+              />
+            );
+          }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.recipes}
+          contentContainerStyle={styles.recipesContent}
+          onEndReached={() => {
+            if (!cargando && hayMasRecetas) {
+              cargarRecetas();
+            }
+          }}
+          onEndReachedThreshold={0.2}
+          ListFooterComponent={
+            cargando ? (
+              <ActivityIndicator
+                size="small"
+                color="#3b82f6"
+                style={styles.loading}
+              />
+            ) : null
+          }
+          ListEmptyComponent={
+            !cargando ? (
+              <Text style={styles.emptyText}>
+                Todavía no tenés recetas guardadas.
+              </Text>
+            ) : null
+          }
         />
       </View>
 
@@ -105,20 +151,14 @@ const styles = StyleSheet.create({
   addButton: {
     width: 50,
     height: 50,
-
     alignSelf: "flex-end",
-
     marginTop: 30,
     marginBottom: 20,
     marginRight: 10,
-
     borderRadius: 12,
-
     alignItems: "center",
     justifyContent: "center",
-
     backgroundColor: "#3b82f6",
-
     borderWidth: 3,
     borderColor: "#e0f2fe",
   },
@@ -137,6 +177,22 @@ const styles = StyleSheet.create({
   },
 
   recipes: {
+    width: "100%",
+  },
+
+  recipesContent: {
     paddingBottom: 30,
+  },
+
+  loading: {
+    marginVertical: 20,
+  },
+
+  emptyText: {
+    marginTop: 30,
+    textAlign: "center",
+    fontFamily: fonts.regular,
+    fontSize: 16,
+    color: "#6b7280",
   },
 });

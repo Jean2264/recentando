@@ -21,8 +21,9 @@ export default function App() {
     async function prepararBaseDeDatos() {
       try {
         await initializeDatabase();
+        console.log("Base de datos inicializada correctamente.");
       } catch (error) {
-        console.error("Error al inicializar ela base de datos: ", error);
+        console.error("Error al inicializar la base de datos: ", error);
       }
     }
     prepararBaseDeDatos();
@@ -40,6 +41,7 @@ export default function App() {
             component={HomeScreen}
             options={{ headerShown: false }}
           />
+
           <Stack.Screen
             name="Recipe"
             component={RecipeScreen}

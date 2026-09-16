@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fonts } from "../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 
 export default function RecipeScreen({ navigation, route }) {
   const recipe = route.params?.recipe;
@@ -73,7 +72,23 @@ export default function RecipeScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>{recipe.nombre}</Text>
+        <View style={styles.section}>
+          {recipe.imagen ? (
+            <Image
+              source={{ uri: recipe.imagen }}
+              style={styles.recipeImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={40} color="#8a8a8a" />
 
+              <Text style={styles.placeholderText}>
+                Esta receta no tiene imagen
+              </Text>
+            </View>
+          )}
+        </View>
         {/* INGREDIENTES */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ingredientes</Text>

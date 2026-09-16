@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +14,7 @@ import { fonts } from "../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { insertarReceta } from "../database/recetaRepository";
 
 export default function RecipeFormScreen({ navigation, route }) {
   const mode = route.params?.mode ?? "create";
@@ -22,7 +24,7 @@ export default function RecipeFormScreen({ navigation, route }) {
 
   const [nombre, setNombre] = useState("");
   const [imagen, setImagen] = useState(null);
-
+  const [tiempo, setTiempo] = useState("");
   const [ingredienteInput, setIngredienteInput] = useState("");
   const [ingredientes, setIngredientes] = useState([]);
 
@@ -33,6 +35,7 @@ export default function RecipeFormScreen({ navigation, route }) {
     if (isEditMode && recipe) {
       setNombre(recipe.nombre ?? "");
       setImagen(recipe.imagen ?? null);
+      setTiempo(recipe.tiempo ?? "");
       setIngredientes(recipe.ingredientes ?? []);
       setPreparacion(recipe.preparacion ?? []);
     }
@@ -67,14 +70,72 @@ export default function RecipeFormScreen({ navigation, route }) {
     }
   }
 
-  function guardarReceta() {
-    console.log({
-      modo: isEditMode ? "editar" : "crear",
-      nombre,
+  function formatearTiempo(minutos) {
+    const valor = Number(minutos);
+
+    if (!minutos || Number.isNaN(valor) || valor <= 0) {
+      return "";
+    }
+
+    if (valor < 60) {
+      return `${valor} min`;
+    }
+
+    const horas = Math.floor(valor / 60);
+    const minutosRestantes = valor % 60;
+    return `${horas}:${String(minutosRestantes).padStart(2, "0")} h`;
+  }
+
+  async function guardarReceta() {
+    if (!nombre.trim()) {
+      Alert.alert("Falta el nombre", "Ingresá un nombre para la receta.");
+
+      return;
+    }
+
+    if (ingredientes.length === 0) {
+      Alert.alert("Faltan ingredientes", "Agregá al menos un ingrediente.");
+
+      return;
+    }
+
+    const receta = {
+      nombre: nombre.trim(),
+      tiempo: tiempo.trim(),
       imagen,
       ingredientes,
       preparacion,
-    });
+    };
+
+    try {
+      if (isEditMode) {
+        Alert.alert(
+          "Edición pendiente",
+          "La edición real la vamos a conectar en el siguiente paso.",
+        );
+
+        return;
+      }
+
+      const nuevaReceta = await insertarReceta(receta);
+
+      console.log("Receta insertada correctamente:", nuevaReceta);
+
+      Alert.alert(
+        "Receta creada",
+        "La receta se guardó correctamente en SQLite.",
+        [
+          {
+            text: "Aceptar",
+            onPress: () => navigation.goBack(),
+          },
+        ],
+      );
+    } catch (error) {
+      console.error("Error al insertar la receta:", error);
+
+      Alert.alert("Error", "No se pudo guardar la receta en la base de datos.");
+    }
   }
 
   return (
@@ -100,7 +161,10 @@ export default function RecipeFormScreen({ navigation, route }) {
           <Text style={styles.sectionTitle}>Imagen de la receta</Text>
 
           {imagen && (
-            <Image source={{ uri: imagen }} style={styles.recipeImage} />
+            <Image
+              source={typeof imagen === "string" ? { uri: imagen } : imagen}
+              style={styles.recipeImage}
+            />
           )}
 
           <Pressable style={styles.imageButton} onPress={seleccionarImagen}>
@@ -124,6 +188,33 @@ export default function RecipeFormScreen({ navigation, route }) {
             placeholder="Ej: Bizcochuelo de chocolate"
             placeholderTextColor="#999"
           />
+        </View>
+
+        {/**TIEMPO DE COCCION */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Tiempo de cocción</Text>
+
+          <View style={styles.timeRow}>
+            <TextInput
+              style={styles.timeInput}
+              value={tiempo}
+              onChangeText={setTiempo}
+              placeholder="Ej: 90"
+              placeholderTextColor="#999"
+              keyboardType="numeric"
+            />
+            <Text style={styles.timeUnit}>minutos</Text>
+          </View>
+
+          {tiempo.trim() !== "" && Number(tiempo) > 0 && (
+            <Text style={styles.timePreview}>
+              Duración: {formatearTiempo(tiempo)}
+            </Text>
+          )}
+
+          <Text style={styles.timeHint}>
+            Ingresa el tiempo total en minutos.
+          </Text>
         </View>
 
         {/* INGREDIENTES */}
@@ -290,6 +381,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  timeInput: {
+    flex: 1,
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    fontFamily: fonts.regular,
+    color: "#1f2937",
+  },
+
+  timeUnit: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: "#374151",
+  },
+
+  timePreview: {
+    marginTop: 8,
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: "#3b82f6",
+  },
+  timeHint: {
+    marginTop: 5,
+    fontSize: 16,
+    fontFamily: fonts.regular,
+    color: "#6b7280",
   },
 
   addInput: {
