@@ -1,6 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+
 import {
   StyleSheet,
   Pressable,
@@ -9,7 +12,6 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import { useCallback, useEffect, useState } from "react";
 
 import { obtenerRecetasPaginadas } from "../database/recetaRepository";
 import Header from "../components/Header";
@@ -37,55 +39,71 @@ export default function HomeScreen({ navigation }) {
     });
   }
 
-  const cargarRecetas = useCallback(async () => {
-    if (cargando || !hayMasRecetas) {
-      return;
-    }
+  const cargarRecetas = useCallback(
+    async (reiniciar = false) => {
+      if (cargando && !reiniciar) {
+        return;
+      }
 
-    try {
-      setCargando(true);
+      if (!reiniciar && !hayMasRecetas) {
+        return;
+      }
 
-      const nuevasRecetas = await obtenerRecetasPaginadas(
-        LIMITE_RECETAS,
-        pagina,
-      );
+      try {
+        setCargando(true);
 
-      setRecetas((recetasAnteriores) => {
-        const recetasCombinadas = [...recetasAnteriores, ...nuevasRecetas];
+        const offset = reiniciar ? 0 : pagina;
 
-        const recetasSinDuplicados = recetasCombinadas.filter(
-          (receta, indice, array) =>
-            indice ===
-            array.findIndex(
-              (recetaAnterior) => recetaAnterior.id === receta.id,
-            ),
+        const nuevasRecetas = await obtenerRecetasPaginadas(
+          LIMITE_RECETAS,
+          offset,
         );
 
-        return recetasSinDuplicados;
-      });
+        console.log("Recetas obtenidas desde SQLite:", nuevasRecetas);
 
-      setPagina((paginaAnterior) => paginaAnterior + LIMITE_RECETAS);
+        if (reiniciar) {
+          setRecetas(nuevasRecetas);
+          setPagina(nuevasRecetas.length);
+        } else {
+          setRecetas((recetasAnteriores) => {
+            const recetasCombinadas = [...recetasAnteriores, ...nuevasRecetas];
 
-      if (nuevasRecetas.length < LIMITE_RECETAS) {
-        setHayMasRecetas(false);
+            const recetasSinDuplicados = recetasCombinadas.filter(
+              (receta, indice, array) =>
+                indice ===
+                array.findIndex(
+                  (recetaAnterior) => recetaAnterior.id === receta.id,
+                ),
+            );
+
+            return recetasSinDuplicados;
+          });
+
+          setPagina((paginaAnterior) => paginaAnterior + nuevasRecetas.length);
+        }
+
+        setHayMasRecetas(nuevasRecetas.length === LIMITE_RECETAS);
+      } catch (error) {
+        console.error("Error al cargar recetas:", error);
+      } finally {
+        setCargando(false);
       }
-    } catch (error) {
-      console.error("Error al cargar recetas:", error);
-    } finally {
-      setCargando(false);
-    }
-  }, [cargando, hayMasRecetas, pagina]);
+    },
+    [cargando, hayMasRecetas, pagina],
+  );
 
-  useEffect(() => {
-    cargarRecetas();
-  }, [cargarRecetas]);
+  useFocusEffect(
+    useCallback(() => {
+      cargarRecetas(true);
+    }, [cargarRecetas]),
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <Header />
 
       <Pressable style={styles.addButton} onPress={abrirCrearReceta}>
-        <Ionicons name="add" size={28} color="#fff" />
+        <Ionicons name="add" size={28} color="#ffffff" />
       </Pressable>
 
       <Searchbar title="Buscar recetas" />
@@ -95,7 +113,7 @@ export default function HomeScreen({ navigation }) {
 
         <FlatList
           data={recetas}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           style={styles.recipes}
           renderItem={({ item }) => {
             console.log("Imagen de la receta:", item.imagen);
@@ -113,7 +131,7 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.recipesContent}
           onEndReached={() => {
             if (!cargando && hayMasRecetas) {
-              cargarRecetas();
+              cargarRecetas(false);
             }
           }}
           onEndReachedThreshold={0.2}
