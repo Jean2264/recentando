@@ -27,6 +27,7 @@ export default function RecipeFormScreen({ navigation, route }) {
   const [tiempo, setTiempo] = useState("");
   const [ingredienteInput, setIngredienteInput] = useState("");
   const [ingredientes, setIngredientes] = useState([]);
+  const [ingredienteEditando, setIngredienteEditando] = useState(null);
 
   const [pasoInput, setPasoInput] = useState("");
   const [preparacion, setPreparacion] = useState([]);
@@ -44,9 +45,33 @@ export default function RecipeFormScreen({ navigation, route }) {
   function agregarIngrediente() {
     if (!ingredienteInput.trim()) return;
 
+    if (ingredienteEditando !== null) {
+      const ingredientesActualizados = [...ingredientes];
+
+      ingredientesActualizados[ingredienteEditando] = ingredienteInput.trim();
+
+      setIngredientes(ingredientesActualizados);
+
+      setIngredienteEditando(null);
+      setIngredienteInput("");
+
+      return;
+    }
+
     setIngredientes([...ingredientes, ingredienteInput.trim()]);
 
     setIngredienteInput("");
+  }
+
+  function editarIngrediente(index) {
+    setIngredienteInput(ingredientes[index]);
+    setIngredienteEditando(index);
+  }
+
+  function eliminarIngrediente(index) {
+    const ingredientesActualizados = ingredientes.filter((_, i) => i !== index);
+
+    setIngredientes(ingredientesActualizados);
   }
 
   function agregarPaso() {
