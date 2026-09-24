@@ -1,8 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useCallback, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+
+import { useCallback, useEffect, useState } from "react";
 
 import {
   StyleSheet,
@@ -14,9 +14,11 @@ import {
 } from "react-native";
 
 import { obtenerRecetasPaginadas } from "../database/recetaRepository";
+
 import Header from "../components/Header";
 import Searchbar from "../components/Searchbar";
 import RecipeCard from "../components/RecipeCard";
+
 import { fonts } from "../styles/fonts";
 
 const LIMITE_RECETAS = 20;
@@ -41,7 +43,7 @@ export default function HomeScreen({ navigation }) {
 
   const cargarRecetas = useCallback(
     async (reiniciar = false) => {
-      if (cargando && !reiniciar) {
+      if (cargando) {
         return;
       }
 
@@ -54,12 +56,19 @@ export default function HomeScreen({ navigation }) {
 
         const offset = reiniciar ? 0 : pagina;
 
+        console.log(
+          "Cargando recetas. Offset:",
+          offset,
+          "Límite:",
+          LIMITE_RECETAS,
+        );
+
         const nuevasRecetas = await obtenerRecetasPaginadas(
           LIMITE_RECETAS,
           offset,
         );
 
-        console.log("Recetas obtenidas desde SQLite:", nuevasRecetas);
+        console.log("Recetas obtenidas:", nuevasRecetas);
 
         if (reiniciar) {
           setRecetas(nuevasRecetas);
@@ -92,18 +101,17 @@ export default function HomeScreen({ navigation }) {
     [cargando, hayMasRecetas, pagina],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      cargarRecetas(true);
-    }, [cargarRecetas]),
-  );
+  // Carga inicial
+  useEffect(() => {
+    cargarRecetas(true);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <Header />
 
       <Pressable style={styles.addButton} onPress={abrirCrearReceta}>
-        <Ionicons name="add" size={28} color="#ffffff" />
+        <Ionicons name="add" size={28} color="#FFFFFF" />
       </Pressable>
 
       <Searchbar title="Buscar recetas" />
@@ -115,18 +123,14 @@ export default function HomeScreen({ navigation }) {
           data={recetas}
           keyExtractor={(item) => item.id.toString()}
           style={styles.recipes}
-          renderItem={({ item }) => {
-            console.log("Imagen de la receta:", item.imagen);
-
-            return (
-              <RecipeCard
-                title={item.nombre}
-                image={item.imagen}
-                tiempo={item.tiempo}
-                onPress={() => abrirDetalleReceta(item)}
-              />
-            );
-          }}
+          renderItem={({ item }) => (
+            <RecipeCard
+              title={item.nombre}
+              image={item.imagen}
+              tiempo={item.tiempo}
+              onPress={() => abrirDetalleReceta(item)}
+            />
+          )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.recipesContent}
           onEndReached={() => {
@@ -139,7 +143,7 @@ export default function HomeScreen({ navigation }) {
             cargando ? (
               <ActivityIndicator
                 size="small"
-                color="#3b82f6"
+                color="#777A77"
                 style={styles.loading}
               />
             ) : null
@@ -162,35 +166,40 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f1f6fe",
+    backgroundColor: "#F7F7F5",
     alignItems: "center",
   },
 
   addButton: {
-    width: 50,
-    height: 50,
+    width: 52,
+    height: 52,
+
     alignSelf: "flex-end",
-    marginTop: 30,
-    marginBottom: 20,
+
+    marginTop: 25,
+    marginBottom: 16,
     marginRight: 10,
-    borderRadius: 12,
+
+    borderRadius: 26,
+
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#3b82f6",
-    borderWidth: 3,
-    borderColor: "#e0f2fe",
+
+    backgroundColor: "#E8B94F",
   },
 
   section: {
     width: "90%",
-    marginTop: 20,
+    marginTop: 24,
     flex: 1,
   },
 
   title: {
     marginBottom: 15,
+
     fontFamily: fonts.semiBold,
     fontSize: 26,
+
     color: "#1F2937",
   },
 
@@ -208,9 +217,12 @@ const styles = StyleSheet.create({
 
   emptyText: {
     marginTop: 30,
+
     textAlign: "center",
+
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: "#6b7280",
+
+    color: "#6B7280",
   },
 });

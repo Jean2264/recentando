@@ -1,6 +1,7 @@
 import { Pressable, Text, Image, StyleSheet, View } from "react-native";
 
 import { fonts } from "../styles/fonts";
+
 import { Ionicons } from "@expo/vector-icons";
 
 export default function RecipeCard({ title, onPress, image, tiempo }) {
@@ -24,6 +25,7 @@ export default function RecipeCard({ title, onPress, image, tiempo }) {
 
     return `${horas} h ${minutosRestantes} min`;
   }
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {image ? (
@@ -34,7 +36,7 @@ export default function RecipeCard({ title, onPress, image, tiempo }) {
         />
       ) : (
         <View style={styles.imagePlaceholder}>
-          <Ionicons name="image-outline" size={28} color="#8a8a8a" />
+          <Ionicons name="image-outline" size={28} color="#8A8A8A" />
         </View>
       )}
 
@@ -44,13 +46,13 @@ export default function RecipeCard({ title, onPress, image, tiempo }) {
         </Text>
 
         <View style={styles.time}>
-          <Ionicons name="time-outline" size={16} color="#8a8a8a" />
+          <Ionicons name="time-outline" size={16} color="#8A8A8A" />
 
-          <Text style={styles.timeText}>
-            {formatearTiempo(tiempo) || "Sin tiempo"}
-          </Text>
+          <Text style={styles.timeText}>{formatearTiempo(tiempo)}</Text>
         </View>
       </View>
+
+      <Ionicons name="chevron-forward" size={22} color="#777A77" />
     </Pressable>
   );
 }
@@ -58,39 +60,41 @@ export default function RecipeCard({ title, onPress, image, tiempo }) {
 const styles = StyleSheet.create({
   card: {
     width: "100%",
-    height: 70,
-    gap: 20,
+    minHeight: 82,
+
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
-    padding: 5,
-    backgroundColor: "#fff",
+
+    gap: 5,
+
+    marginBottom: 14,
+    padding: 10,
+
+    backgroundColor: "#FFFFFF",
+
+    borderRadius: 18,
+
     borderWidth: 1,
-    borderColor: "#dbe7ed",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      height: 1,
-      width: 0,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    borderColor: "#ECECE8",
   },
 
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 62,
+    height: 62,
+
+    borderRadius: 15,
   },
 
   imagePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 62,
+    height: 62,
+
+    borderRadius: 15,
+
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#e5edf5",
+
+    backgroundColor: "#F1F1EE",
   },
 
   info: {
@@ -99,10 +103,11 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: fonts.medium,
-    color: "#1F2937",
-    marginBottom: 8,
+    color: "#202522",
+
+    marginBottom: 6,
   },
 
   time: {
@@ -112,8 +117,9 @@ const styles = StyleSheet.create({
 
   timeText: {
     marginLeft: 5,
-    fontSize: 14,
+
+    fontSize: 13,
     fontFamily: fonts.regular,
-    color: "#8a8a8a",
+    color: "#8A8A8A",
   },
 });

@@ -1,15 +1,16 @@
 import { StyleSheet, View, TextInput } from "react-native";
+
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Searchbar({ title }) {
   return (
     <View style={styles.container}>
-      <Ionicons name="search" size={22} color="#666" />
+      <Ionicons name="search" size={21} color="#777A77" />
 
       <TextInput
         style={styles.input}
         placeholder={title}
-        placeholderTextColor="#888"
+        placeholderTextColor="#8A8D8A"
       />
     </View>
   );
@@ -19,30 +20,27 @@ const styles = StyleSheet.create({
   container: {
     width: "90%",
     minHeight: 50,
+
     flexDirection: "row",
     alignItems: "center",
 
-    borderWidth: 1,
-    borderColor: "#dbe7ed",
-    borderRadius: 10,
     paddingHorizontal: 15,
 
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
 
-    shadowColor: "#000",
-    shadowOffset: {
-      height: 0,
-      width: 2,
-    },
+    borderRadius: 16,
 
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#ECECE8",
   },
 
   input: {
     flex: 1,
+
     marginLeft: 10,
-    fontSize: 16,
+
+    fontSize: 15,
+
+    color: "#202522",
   },
 });

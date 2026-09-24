@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   View,
   Text,
@@ -8,7 +9,11 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+
+import { StatusBar } from "expo-status-bar";
+
 import { Ionicons } from "@expo/vector-icons";
+
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { fonts } from "../styles/fonts";
@@ -54,6 +59,7 @@ export default function RecipeScreen() {
           style: "destructive",
           onPress: () => {
             console.log("Eliminar receta:", recipe.id);
+
             navigation.goBack();
           },
         },
@@ -61,68 +67,96 @@ export default function RecipeScreen() {
     );
   }
 
+  function editarReceta() {
+    navigation.navigate("RecipeForm", {
+      mode: "edit",
+      recipe: recipe,
+    });
+  }
+
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
+
+      {/* =========================
+          CONTENIDO SCROLLEABLE
+      ========================= */}
+
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#222222" />
-          </TouchableOpacity>
+        {/* =========================
+            IMAGEN PRINCIPAL
+        ========================= */}
 
-          <Text style={styles.headerTitle}>Detalle de receta</Text>
+        <View style={styles.imageContainer}>
+          {recipe.imagen ? (
+            <Image
+              source={{ uri: recipe.imagen }}
+              style={styles.recipeImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={48} color="#8A8A8A" />
 
-          <View style={styles.headerSpace} />
+              <Text style={styles.placeholderText}>
+                Esta receta no tiene imagen
+              </Text>
+            </View>
+          )}
         </View>
 
-        {recipe.imagen ? (
-          <Image
-            source={{ uri: recipe.imagen }}
-            style={styles.recipeImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="image-outline" size={42} color="#8a8a8a" />
-
-            <Text style={styles.placeholderText}>
-              Esta receta no tiene imagen
-            </Text>
-          </View>
-        )}
+        {/* =========================
+            INFORMACIÓN PRINCIPAL
+        ========================= */}
 
         <View style={styles.content}>
+          {/* NOMBRE */}
+
           <Text style={styles.recipeName}>{recipe.nombre}</Text>
 
-          <View style={styles.recipeTime}>
-            <Ionicons name="time-outline" size={21} color="#8a8a8a" />
+          {/* =========================
+              TIEMPO DE COCCIÓN
+          ========================= */}
 
-            <Text style={styles.recipeTimeText}>
-              {formatearTiempo(recipe.tiempo)}
-            </Text>
+          <View style={styles.infoCard}>
+            <View style={styles.infoIconContainer}>
+              <Ionicons name="time-outline" size={21} color="#555955" />
+            </View>
+
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoLabel}>Tiempo de cocción</Text>
+
+              <Text style={styles.infoValue}>
+                {formatearTiempo(recipe.tiempo)}
+              </Text>
+            </View>
           </View>
+
+          {/* =========================
+              INGREDIENTES
+          ========================= */}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingredientes</Text>
 
             {Array.isArray(recipe.ingredientes) &&
             recipe.ingredientes.length > 0 ? (
-              recipe.ingredientes.map((ingrediente, index) => (
-                <View key={index} style={styles.ingredientRow}>
-                  <View style={styles.bullet} />
+              <View style={styles.ingredientsList}>
+                {recipe.ingredientes.map((ingrediente, index) => (
+                  <View key={index} style={styles.ingredientRow}>
+                    <View style={styles.ingredientBullet} />
 
-                  <Text style={styles.ingredientText}>
-                    {typeof ingrediente === "string"
-                      ? ingrediente
-                      : ingrediente.nombre || ingrediente.ingrediente || ""}
-                  </Text>
-                </View>
-              ))
+                    <Text style={styles.ingredientText}>
+                      {typeof ingrediente === "string"
+                        ? ingrediente
+                        : ingrediente.nombre || ingrediente.ingrediente || ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             ) : (
               <Text style={styles.emptyText}>
                 No hay ingredientes cargados.
@@ -130,200 +164,479 @@ export default function RecipeScreen() {
             )}
           </View>
 
+          {/* =========================
+              PREPARACIÓN
+          ========================= */}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Preparación</Text>
 
             {Array.isArray(recipe.preparacion) &&
             recipe.preparacion.length > 0 ? (
-              recipe.preparacion.map((paso, index) => (
-                <View key={index} style={styles.stepRow}>
-                  <View style={styles.stepNumber}>
-                    <Text style={styles.stepNumberText}>{index + 1}</Text>
-                  </View>
+              <View style={styles.preparationList}>
+                {recipe.preparacion.map((paso, index) => (
+                  <View key={index} style={styles.stepRow}>
+                    <View style={styles.stepNumber}>
+                      <Text style={styles.stepNumberText}>{index + 1}</Text>
+                    </View>
 
-                  <Text style={styles.stepText}>
-                    {typeof paso === "string"
-                      ? paso
-                      : paso.descripcion || paso.paso || paso.texto || ""}
-                  </Text>
-                </View>
-              ))
+                    <Text style={styles.stepText}>
+                      {typeof paso === "string"
+                        ? paso
+                        : paso.descripcion || paso.paso || paso.texto || ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             ) : (
               <Text style={styles.emptyText}>
                 No hay pasos de preparación cargados.
               </Text>
             )}
           </View>
-          {/**botones de accion */}
         </View>
       </ScrollView>
+
+      {/* =========================
+          BOTÓN VOLVER FIJO
+      ========================= */}
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chevron-back" size={26} color="#202522" />
+      </TouchableOpacity>
+
+      {/* =========================
+          FOOTER FIJO
+      ========================= */}
+
+      <View style={styles.footer}>
+        {/* ELIMINAR */}
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={eliminarReceta}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="trash-outline" size={20} color="#C94A4A" />
+
+          <Text style={styles.deleteButtonText}>Eliminar</Text>
+        </TouchableOpacity>
+
+        {/* EDITAR */}
+
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={editarReceta}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+
+          <Text style={styles.editButtonText}>Editar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  /* =========================
+     CONTENEDOR
+  ========================= */
+
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+
+    backgroundColor: "#F7F7F5",
   },
+
+  /* =========================
+     SCROLL
+  ========================= */
 
   scrollContent: {
-    paddingBottom: 32,
+    paddingBottom: 105,
   },
 
-  headerSpace: {
-    width: 42,
-    height: 42,
-  },
+  /* =========================
+     IMAGEN
+  ========================= */
 
-  header: {
-    height: 70,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#ffffff",
-  },
+  imageContainer: {
+    width: "100%",
+    height: 310,
 
-  backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f1f3f5",
-  },
-
-  headerTitle: {
-    flex: 1,
-    marginHorizontal: 12,
-    textAlign: "center",
-    fontSize: 18,
-    fontFamily: fonts.semiBold,
-    color: "#222222",
-  },
-
-  deleteButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff0f0",
+    position: "relative",
   },
 
   recipeImage: {
     width: "100%",
-    height: 250,
+    height: "100%",
   },
 
   imagePlaceholder: {
     width: "100%",
-    height: 250,
+    height: "100%",
+
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#e5edf5",
-    gap: 8,
+
+    backgroundColor: "#EDEDE8",
+
+    gap: 10,
   },
 
   placeholderText: {
     fontSize: 14,
+
     fontFamily: fonts.regular,
-    color: "#8a8a8a",
+
+    color: "#8A8A8A",
   },
+
+  /* =========================
+     BOTÓN VOLVER FIJO
+  ========================= */
+
+  backButton: {
+    position: "absolute",
+
+    top: 48,
+    left: 20,
+
+    zIndex: 1000,
+
+    elevation: 10,
+
+    width: 44,
+    height: 44,
+
+    borderRadius: 22,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
+  },
+
+  /* =========================
+     CONTENIDO
+  ========================= */
 
   content: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+
+    paddingTop: 22,
   },
+
+  /* =========================
+     NOMBRE
+  ========================= */
 
   recipeName: {
     fontSize: 28,
     lineHeight: 34,
+
     fontFamily: fonts.bold,
-    color: "#222222",
+
+    color: "#202522",
   },
 
-  recipeTime: {
+  /* =========================
+     TARJETA DE INFORMACIÓN
+  ========================= */
+
+  infoCard: {
+    width: "100%",
+
+    minHeight: 82,
+
+    marginTop: 18,
+
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginTop: 12,
+
+    backgroundColor: "#FFFFFF",
+
+    borderRadius: 18,
+
+    borderWidth: 1,
+    borderColor: "#ECECE8",
   },
 
-  recipeTimeText: {
-    fontSize: 16,
-    fontFamily: fonts.regular,
-    color: "#6b7280",
+  infoIconContainer: {
+    width: 44,
+    height: 44,
+
+    borderRadius: 14,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    backgroundColor: "#F3F3EF",
   },
+
+  infoTextContainer: {
+    marginLeft: 13,
+  },
+
+  infoLabel: {
+    fontSize: 13,
+
+    fontFamily: fonts.regular,
+
+    color: "#8A8D8A",
+  },
+
+  infoValue: {
+    marginTop: 3,
+
+    fontSize: 17,
+
+    fontFamily: fonts.semiBold,
+
+    color: "#202522",
+  },
+
+  /* =========================
+     SECCIONES
+  ========================= */
 
   section: {
     marginTop: 30,
   },
 
   sectionTitle: {
-    marginBottom: 16,
-    fontSize: 22,
+    marginBottom: 14,
+
+    fontSize: 21,
+
     fontFamily: fonts.semiBold,
-    color: "#222222",
+
+    color: "#202522",
+  },
+
+  /* =========================
+     INGREDIENTES
+  ========================= */
+
+  ingredientsList: {
+    width: "100%",
+
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+
+    backgroundColor: "#FFFFFF",
+
+    borderRadius: 18,
+
+    borderWidth: 1,
+    borderColor: "#ECECE8",
   },
 
   ingredientRow: {
+    minHeight: 48,
+
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
+    alignItems: "center",
+
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F1EE",
   },
 
-  bullet: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 7,
+  ingredientBullet: {
+    width: 7,
+    height: 7,
+
     marginRight: 12,
-    backgroundColor: "#6c9f68",
+
+    borderRadius: 4,
+
+    backgroundColor: "#777A77",
   },
 
   ingredientText: {
     flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
+
+    paddingVertical: 12,
+
+    fontSize: 15,
+
+    lineHeight: 22,
+
     fontFamily: fonts.regular,
-    color: "#444444",
+
+    color: "#444844",
+  },
+
+  /* =========================
+     PREPARACIÓN
+  ========================= */
+
+  preparationList: {
+    width: "100%",
+
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+
+    backgroundColor: "#FFFFFF",
+
+    borderRadius: 18,
+
+    borderWidth: 1,
+    borderColor: "#ECECE8",
   },
 
   stepRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 18,
+
+    paddingVertical: 14,
+
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F1EE",
   },
 
   stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+
     marginRight: 12,
+
+    borderRadius: 15,
+
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#6c9f68",
+
+    backgroundColor: "#202522",
   },
 
   stepNumberText: {
-    fontSize: 15,
+    fontSize: 13,
+
     fontFamily: fonts.semiBold,
-    color: "#ffffff",
+
+    color: "#FFFFFF",
   },
 
   stepText: {
     flex: 1,
-    fontSize: 16,
-    lineHeight: 25,
+
+    paddingTop: 3,
+
+    fontSize: 15,
+
+    lineHeight: 23,
+
     fontFamily: fonts.regular,
-    color: "#444444",
+
+    color: "#444844",
   },
 
+  /* =========================
+     ESTADO VACÍO
+  ========================= */
+
   emptyText: {
+    paddingVertical: 14,
+
     fontSize: 15,
+
     fontFamily: fonts.regular,
-    color: "#8a8a8a",
+
+    color: "#8A8A8A",
+  },
+
+  /* =========================
+     FOOTER FIJO
+  ========================= */
+
+  footer: {
+    position: "absolute",
+
+    left: 0,
+    right: 0,
+    bottom: 0,
+
+    zIndex: 1000,
+
+    elevation: 10,
+
+    minHeight: 82,
+
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    gap: 10,
+
+    backgroundColor: "#FFFFFF",
+
+    borderTopWidth: 1,
+    borderTopColor: "#ECECE8",
+  },
+
+  /* =========================
+     ELIMINAR
+  ========================= */
+
+  deleteButton: {
+    flex: 1,
+
+    height: 50,
+
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+
+    borderRadius: 16,
+
+    backgroundColor: "#FFF1F1",
+  },
+
+  deleteButtonText: {
+    marginLeft: 8,
+
+    fontSize: 15,
+
+    fontFamily: fonts.semiBold,
+
+    color: "#C94A4A",
+  },
+
+  /* =========================
+     EDITAR
+  ========================= */
+
+  editButton: {
+    flex: 1,
+
+    height: 50,
+
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+
+    borderRadius: 16,
+
+    backgroundColor: "#202522",
+  },
+
+  editButtonText: {
+    marginLeft: 8,
+
+    fontSize: 15,
+
+    fontFamily: fonts.semiBold,
+
+    color: "#FFFFFF",
   },
 });
